@@ -9,9 +9,9 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "streamlit (>=1.41.1,<2.0.0)"
+    "streamlit (>=1.41.1,<2.0.0)",
+    "yt-dlp (>=2024.12.23,<2025.0.0)"
 ]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
