@@ -13,6 +13,15 @@ dependencies = [
     "yt-dlp (>=2024.12.23,<2025.0.0)"
 ]
 
+[tool.basedpyright]
+reportAny = "warning"
+reportMissingTypeStubs = false
+typeCheckingMode = "standard"
+pythonVersion = "3.10"
+
+[tool.ruff.lint]
+select = ["I", "F", "E"]
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
