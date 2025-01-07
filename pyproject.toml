@@ -20,4 +20,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 basedpyright = "^1.23.2"
 ruff = "^0.8.6"
+icecream = "^2.1.3"
 
