@@ -15,18 +15,19 @@ dependencies = [
 
 [tool.pylint."messages control"]
 disable = [
-    "raw-checker-failed",
     "bad-inline-option",
+    "deprecated-pragma",
+    "raw-checker-failed",
     "locally-disabled",
     "file-ignored",
+    "missing-class-docstring",
+    "missing-module-docstring",
     "suppressed-message",
+    "unspecified-encoding",
     "useless-suppression",
-    "deprecated-pragma",
     "use-implicit-booleaness-not-comparison-to-string",
     "use-implicit-booleaness-not-comparison-to-zero",
-    "use-symbolic-message-instead",
-    "missing-class-docstring",
-    "missing-module-docstring"
+    "use-symbolic-message-instead"
 ]
 
 [tool.basedpyright]
