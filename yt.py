@@ -6,6 +6,7 @@ from enum import IntEnum, auto
 from typing import Any, cast
 
 import streamlit as st
+from yt_dlp import YoutubeDL
 
 from utils import dict_or
 
@@ -14,6 +15,7 @@ class FormatType(IntEnum):
     AUDIO = auto()
     VIDEO = auto()
     AUDIO_VIDEO = auto()
+    INVALID = auto()
 
 class Format(ABC):
     def __init__(self, d: dict[str, Any]):
@@ -24,7 +26,7 @@ class Format(ABC):
                 self.format_note = cast(str, fn)
 
             case _:
-                # TODO: aaaa
+                # TODO: Implement exception for missing dictionary keys
                 raise ValueError("Dict missing one or more of: ", d)
 
     @property
@@ -39,7 +41,7 @@ class Format(ABC):
                 assert acodec not in (None, "none")
                 return AudioFormat(d)
 
-        raise ValueError("Incorrect dictionary structure")
+        return InvalidFormat(d)
 
 class AudioFormat(Format):
     def __init__(self, d: dict[str, Any]):
@@ -57,26 +59,34 @@ class AudioVideoFormat(AudioFormat, VideoFormat):
     def __init__(self, d: dict[str, Any]):
         pass
 
-# @st.cache_data
-# def yt_extract_info(url: str) -> dict[str, Any]:
-#     """
-#     Extract the info dictionary for URL.
+class InvalidFormat(Format):
+    def __init__(self, _d: dict) -> None:
+        pass
 
-#     Any errors will derive from YoutubeDLError.
-#     """
-#     options = {
-#         "quiet": True,
-#         "dump_single_json": True,
-#         "age_limit": 18,
-#     }
+    @property
+    def type(self) -> FormatType:
+        return FormatType.INVALID
 
-#     with YoutubeDL(options) as ydl:
-#         info: dict | Any = YoutubeDL.sanitize_info(
-#             ydl.extract_info(url, download=False)
-#         )
-#         assert isinstance(info, dict)
+@st.cache_data
+def extract_info(url: str) -> dict[str, Any]:
+    """
+    Extract the info dictionary for URL.
 
-#     return info
+    Any errors will derive from YoutubeDLError.
+    """
+    options = {
+        "quiet": True,
+        "dump_single_json": True,
+        "age_limit": 18,
+    }
+
+    with YoutubeDL(options) as ydl:
+        info: dict | Any = YoutubeDL.sanitize_info(
+            ydl.extract_info(url, download=False)
+        )
+        assert isinstance(info, dict)
+
+    return info
 
 @st.cache_data
 def extract_info_from_file(_url: str) -> dict[str, Any]:
