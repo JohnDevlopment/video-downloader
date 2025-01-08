@@ -79,7 +79,7 @@ class AudioVideoFormat(AudioFormat, VideoFormat):
 #     return info
 
 @st.cache_data
-def extract_info(_url: str) -> dict[str, Any]:
+def extract_info_from_file(_url: str) -> dict[str, Any]:
     with open("info.json") as fd:
         info: dict[str, Any] = json.load(fd)
         assert isinstance(info, dict)

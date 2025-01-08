@@ -55,7 +55,7 @@ def extract_info(url: str):
         # Extract info dictionary with a nifty spinner
         with st.spinner("Extracting info from URL..."):
             time.sleep(1)
-            info = yt.extract_info(url)
+            info = yt.extract_info_from_file(url)
     except ExtractorError as e:
         st.error(f"Failed to extract info: {e}")
         return
