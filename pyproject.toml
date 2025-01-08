@@ -13,6 +13,22 @@ dependencies = [
     "yt-dlp (>=2024.12.23,<2025.0.0)"
 ]
 
+[tool.pylint."messages control"]
+disable = [
+    "raw-checker-failed",
+    "bad-inline-option",
+    "locally-disabled",
+    "file-ignored",
+    "suppressed-message",
+    "useless-suppression",
+    "deprecated-pragma",
+    "use-implicit-booleaness-not-comparison-to-string",
+    "use-implicit-booleaness-not-comparison-to-zero",
+    "use-symbolic-message-instead",
+    "missing-class-docstring",
+    "missing-module-docstring"
+]
+
 [tool.basedpyright]
 reportAny = "warning"
 reportMissingTypeStubs = false
