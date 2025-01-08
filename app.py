@@ -104,50 +104,12 @@ def process_info_dict(info: dict[str, Any]):
             fn.lower() == "storyboard"
         )
 
+    
     it = filterfalse(_filter, info['formats'])
     for i, fmt in enumerate(it):
         fmt = yt.Format.from_dict(fmt)
         if fmt.type == yt.FormatType.AUDIO:
             audio_only.append(fmt)
-
-        # match fmt:
-        #     case {'abr': 0, 'vbr': vbr,
-        #           'format_id': fid,
-        #           'video_ext': ext,
-        #           'resolution': res,
-        #           'fps': fps,
-        #           'acodec': None | "none", 'vcodec': vc,
-        #           **_other}:
-        #         # Video only
-        #         video_only.append({
-        #             'ID': fid,
-        #             'Extension': ext,
-        #             'Resolution': res,
-        #             'FPS': fps,
-        #             'Bitrate': vbr,
-        #             'Note': fn,
-        #             'Codec (A/V)': f"/{vc}",
-        #         })
-
-        #     case {'abr': abr, 'vbr': 0,
-        #           'format_id': fid,
-        #           'audio_ext': ext,
-        #           'acodec': ac, 'vcodec': None | "none",
-        #           **_other}:
-        #         # Audio only
-        #         audio_only.append({
-        #             'ID': fid,
-        #             'Extension': ext,
-        #             'Resolution': "",
-        #             'FPS': None,
-        #             'Bitrate': abr,
-        #             'Note': fn,
-        #             'Codec (A/V)': f"{ac}/",
-        #         })
-
-        #     case _:
-        #         # Both audio and video
-        #         pass
 
     for i, fmt in enumerate(chain(audio_only, video_only, audio_video)):
         df.loc[i] = fmt
