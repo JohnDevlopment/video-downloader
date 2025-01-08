@@ -30,7 +30,7 @@ disable = [
 ]
 
 [tool.basedpyright]
-reportAny = "warning"
+reportAny = false
 reportMissingTypeStubs = false
 typeCheckingMode = "standard"
 pythonVersion = "3.10"
