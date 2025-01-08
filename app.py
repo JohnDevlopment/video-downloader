@@ -3,15 +3,15 @@ from __future__ import annotations
 import json
 import time
 from enum import Enum
-from functools import partial
 from itertools import chain, filterfalse
-from typing import Any, TypeAlias, TypedDict, cast
+from typing import Any, TypedDict, cast
 
 import pandas as pd
 import streamlit as st
-from icecream import ic
-from yt_dlp import YoutubeDL
 from yt_dlp.utils import ExtractorError
+
+from utils import dict_or, subst_none
+import yt
 
 
 class Column(str, Enum):
@@ -40,40 +40,13 @@ if 'info_dict' not in st.session_state:
 
 st.title("Video Downloader")
 
-# @st.cache_data
-# def yt_extract_info(url: str) -> dict[str, Any]:
-#     """
-#     Extract the info dictionary for URL.
-
-#     Any errors will derive from YoutubeDLError.
-#     """
-#     options = {
-#         "quiet": True,
-#         "dump_single_json": True,
-#         "age_limit": 18,
-#     }
-
-#     with YoutubeDL(options) as ydl:
-#         info: dict | Any = YoutubeDL.sanitize_info(
-#             ydl.extract_info(url, download=False)
-#         )
-#         assert isinstance(info, dict)
-
-#     return info
-
-def dict_or(d: dict, *keys: Any, default: Any=None) -> tuple[Any, Any]:
-    for key in keys:
-        if key in d:
-            return (key, d[key])
-    return (None, default)
-
 @st.fragment
 def extract_info(url: str):
     """
     Fragment run when the process-button is clicked.
 
     * This is a fragment.
-    * This sets state key "info_dict".
+    * This sets state key `info_dict`.
     """
     st.session_state.info_dict = None
 
@@ -82,7 +55,7 @@ def extract_info(url: str):
         # Extract info dictionary with a nifty spinner
         with st.spinner("Extracting info from URL..."):
             time.sleep(1)
-            info = yt_extract_info(url)
+            info = yt.extract_info(url)
     except ExtractorError as e:
         st.error(f"Failed to extract info: {e}")
         return
@@ -99,24 +72,6 @@ def extract_info(url: str):
     # This is effectively the return value
     st.session_state.info_dict = info
 
-def not_zero(*args: int, check_none=False) -> bool:
-    """
-    Return true if all arguments are not zero.
-    """
-    if check_none:
-        values = map(lambda x: x != 0 and x is not None, args)
-    else:
-        values = map(lambda x: x != 0, args)
-    return all(values)
-
-not_zero_or_none = partial(not_zero, check_none=True)
-
-def subst_none(val: Any | None, alt: Any) -> Any:
-    """
-    Return VAL unless it is None, otherwise return ALT.
-    """
-    return alt if val is None else val
-
 def process_info_dict(info: dict[str, Any]):
     df = pd.DataFrame({
         Column.ID: [],
@@ -127,8 +82,8 @@ def process_info_dict(info: dict[str, Any]):
         Column.NOTE: [],
         Column.CODEC: [],
     })
-    video_only: list[ColumnDict] = []
-    audio_only: list[ColumnDict] = []
+    video_only: list[yt.Format] = []
+    audio_only: list[yt.Format] = []
     audio_video: list[ColumnDict] = []
 
     # Set type of each row
@@ -151,41 +106,48 @@ def process_info_dict(info: dict[str, Any]):
 
     it = filterfalse(_filter, info['formats'])
     for i, fmt in enumerate(it):
-        key, fn = dict_or(fmt, 'format', 'format_note')
-        match fmt:
-            case {'abr': 0, 'vbr': vbr,
-                  'format_id': fid,
-                  'video_ext': ext,
-                  'resolution': res,
-                  'fps': fps,
-                  'acodec': None | "none", 'vcodec': vc,
-                  **_other}:
-                # Video only
-                video_only.append({
-                    'ID': fid,
-                    'Extension': ext,
-                    'Resolution': res,
-                    'FPS': fps,
-                    'Bitrate': vbr,
-                    'Note': fn,
-                    'Codec (A/V)': f"/{vc}",
-                })
+        fmt = yt.Format.from_dict(fmt)
+        if fmt.type == yt.FormatType.AUDIO:
+            audio_only.append(fmt)
 
-            case {'abr': abr, 'vbr': 0,
-                  'format_id': fid,
-                  'audio_ext': ext,
-                  'acodec': ac, 'vcodec': None | "none",
-                  **_other}:
-                # Audio only
-                audio_only.append({
-                    'ID': fid,
-                    'Extension': ext,
-                    'Resolution': "",
-                    'FPS': None,
-                    'Bitrate': abr,
-                    'Note': fn,
-                    'Codec (A/V)': f"{ac}/",
-                })
+        # match fmt:
+        #     case {'abr': 0, 'vbr': vbr,
+        #           'format_id': fid,
+        #           'video_ext': ext,
+        #           'resolution': res,
+        #           'fps': fps,
+        #           'acodec': None | "none", 'vcodec': vc,
+        #           **_other}:
+        #         # Video only
+        #         video_only.append({
+        #             'ID': fid,
+        #             'Extension': ext,
+        #             'Resolution': res,
+        #             'FPS': fps,
+        #             'Bitrate': vbr,
+        #             'Note': fn,
+        #             'Codec (A/V)': f"/{vc}",
+        #         })
+
+        #     case {'abr': abr, 'vbr': 0,
+        #           'format_id': fid,
+        #           'audio_ext': ext,
+        #           'acodec': ac, 'vcodec': None | "none",
+        #           **_other}:
+        #         # Audio only
+        #         audio_only.append({
+        #             'ID': fid,
+        #             'Extension': ext,
+        #             'Resolution': "",
+        #             'FPS': None,
+        #             'Bitrate': abr,
+        #             'Note': fn,
+        #             'Codec (A/V)': f"{ac}/",
+        #         })
+
+        #     case _:
+        #         # Both audio and video
+        #         pass
 
     for i, fmt in enumerate(chain(audio_only, video_only, audio_video)):
         df.loc[i] = fmt
