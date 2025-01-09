@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-from enum import Enum
 from itertools import chain, filterfalse
 from typing import Any, cast
 
@@ -14,6 +13,9 @@ import yt
 from column import Column
 from utils import subst_none
 
+logging.basicConfig(
+    level=logging.INFO, format="[%(levelname)s %(asctime)s] %(message)s"
+)
 
 URL = "https://www.youtube.com/watch?v=MNruRgXGFdk"
 
